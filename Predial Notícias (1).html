@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Predial Notícias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#0d1b36;--mut:#5d6b82;--line:#e1e6f0;--soft:#e8f0f6;--teal:#0e7c9e;--or:#f04d23;--nav:#0c1a33;--warn:#fdf1d8;--warnt:#6b4e0a;--err:#a11d1d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a1424;--card:#101e36;--ink:#eaf0fb;--mut:#9fb0c9;--line:#22344f;--soft:#12233b;--teal:#4fc3e8;--warn:#3a2f12;--warnt:#f1d9a0;--err:#ff8a8a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a1424;--card:#101e36;--ink:#eaf0fb;--mut:#9fb0c9;--line:#22344f;--soft:#12233b;--teal:#4fc3e8;--warn:#3a2f12;--warnt:#f1d9a0;--err:#ff8a8a;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "DM Sans",system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--nav);z-index:30}
+h1,h2,h3,.hd{font-family:Manrope,"DM Sans",system-ui,sans-serif;letter-spacing:-.02em}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:1250px;margin:0 auto;padding:0 28px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--nav);border-bottom:1px solid #ffffff14}
+.nav{display:flex;align-items:center;gap:24px;height:70px}
+.logo{display:flex;align-items:center;gap:10px;color:#fff;font:800 19px/1 Manrope,sans-serif;letter-spacing:.08em}
+.logo small{display:block;font-size:10px;letter-spacing:.3em;font-weight:500;margin-top:4px;color:#cfd8e8}
+.links{display:flex;gap:28px;margin:0 auto;font:700 15px Manrope,sans-serif}
+.links a{color:#c5cfe0;text-decoration:none;padding:22px 0 8px;border-bottom:2px solid transparent}
+.links a.on{color:#fff;border-color:#2ab4e8}
+.btn{border:1px solid #ffffff40;background:transparent;color:#fff;border-radius:10px;padding:10px 16px;font:700 13px Manrope,sans-serif}
+.btn.or{background:var(--or);border-color:var(--or);box-shadow:0 8px 20px #f04d2340}
+.hero{background:radial-gradient(900px 300px at 85% 0,#14447a55,transparent),linear-gradient(135deg,#091831,#0b2547);color:#fff;padding:56px 0 34px}
+.ov{color:#4cc4f5;font:700 12px Manrope,sans-serif;letter-spacing:.1em}
+.hero h1{font-size:clamp(38px,6vw,56px);margin:10px 0 14px;line-height:1.05;font-weight:800}
+.hero p{max-width:690px;color:#cfd9ea;font-size:18px;margin:0}
+.hero .dt{text-align:right;color:#b9c6dc;font-size:14px;margin-top:-6px}
+.bar{background:#fff;border-bottom:1px solid var(--line)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .bar{background:var(--card)}}
+:root[data-theme="dark"] .bar{background:var(--card)}
+.bar .wrap{display:flex;gap:16px;align-items:center;justify-content:space-between;padding-top:18px;padding-bottom:18px;flex-wrap:wrap}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:8px 16px;font:700 13px Manrope,sans-serif}
+.pill.on{background:var(--nav);border-color:var(--nav);color:#fff}
+.search{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 14px;width:300px;max-width:100%;color:var(--ink);font:inherit;font-size:14px}
+.strip{background:var(--soft);text-align:center;padding:14px;font-size:14px;color:var(--mut);border-bottom:1px solid var(--line)}
+#st{color:var(--err);font:700 13px Manrope,sans-serif;padding:14px 28px 0;max-width:1250px;margin:0 auto;min-height:0}
+main{display:grid;grid-template-columns:minmax(0,1fr) 315px;gap:30px;padding-top:26px;padding-bottom:60px}
+@media(max-width:900px){main{grid-template-columns:1fr}.links{display:none}.nav{gap:10px}.btn:not(.or){display:none}.nav .btn.or{margin-left:auto}.search{width:100%}}
+h2.sec{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700;margin:6px 0 18px}
+h2.sec::before{content:"";width:4px;height:22px;background:var(--or);border-radius:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px #0b1a3a0a}
+.feat{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;cursor:pointer;margin-bottom:34px;min-height:330px}
+@media(max-width:640px){.feat{grid-template-columns:1fr}}
+.cover{position:relative;min-height:230px;background:radial-gradient(circle at 35% 55%,#ffffff1c 0 70px,transparent 71px),radial-gradient(circle at 35% 55%,#ffffff12 0 150px,transparent 151px),linear-gradient(160deg,#0b2a4d,#1a7ea4);color:#fff;overflow:hidden}
+.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cover .ot{position:absolute;left:18px;right:18px;bottom:18px;font:800 clamp(24px,3.2vw,36px)/1.1 Manrope,sans-serif;text-shadow:0 2px 14px #0007}
+.cover.ph::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 45%,#000a)}
+.cover .ot{z-index:1}
+.fb{padding:36px 38px;display:flex;flex-direction:column;justify-content:center}
+.tag{color:var(--teal);font:800 11.5px Manrope,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.fb h3{font-size:clamp(25px,3vw,34px);line-height:1.15;margin:12px 0;font-weight:800}
+.fb p{color:var(--mut);margin:0 0 18px}
+.meta{color:var(--mut);font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.n{padding:22px;cursor:pointer;display:flex;flex-direction:column;min-height:220px;transition:transform .15s,box-shadow .15s}
+.n:hover,.feat:hover{transform:translateY(-2px);box-shadow:0 16px 34px #0b1a3a1c}
+.n img{width:calc(100% + 44px);margin:-22px -22px 16px;height:140px;object-fit:cover;border-radius:16px 16px 0 0}
+.n h3{font-size:19px;line-height:1.25;margin:10px 0 8px;font-weight:700}
+.n p{color:var(--mut);margin:0 0 auto;font-size:15px}
+.n .meta{margin-top:16px}
+aside .card{padding:22px;margin-bottom:22px}
+aside h4{margin:0 0 14px;font:700 17px Manrope,sans-serif}
+.pop{display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--line);cursor:pointer;font:700 13.5px/1.35 Manrope,sans-serif}
+.pop b{color:var(--or);font-size:16px;min-width:26px}
+aside p{color:var(--mut);font-size:14.5px;margin:0}
+aside a{color:var(--teal);font-weight:700}
+.empty{padding:34px;text-align:center;color:var(--mut)}
+.ov-bg{position:fixed;inset:0;z-index:50;background:#06112599;backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:6vh 14px;overflow:auto}
+.modal{background:var(--card);border-radius:18px;width:min(520px,100%);padding:26px 28px;position:relative;box-shadow:0 30px 80px #0006}
+.modal.w{width:min(760px,100%)}
+.modal h3{margin:0 0 6px;font-size:23px}
+.x{position:absolute;right:20px;top:20px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.note{background:var(--warn);color:var(--warnt);border-radius:10px;padding:12px 14px;font-size:14px;margin:14px 0}
+label{display:block;font:700 13px Manrope,sans-serif;margin:14px 0 6px}
+input[type=text],input[type=password],input[type=date],select,textarea{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:11px 13px;font:inherit;font-size:15px}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.chk{display:flex;gap:8px;align-items:center;font:500 14px "DM Sans";margin:12px 18px 0 0}.chk input{width:18px;height:18px}
+.prim{background:var(--or);color:#fff;border:0;border-radius:10px;padding:13px 20px;font:800 14px Manrope,sans-serif;box-shadow:0 10px 24px #f04d2338}
+.sec2{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:12px 16px;font:700 13px Manrope,sans-serif}
+.prev{max-height:160px;border-radius:10px;margin-top:10px;display:block}
+.li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}
+.li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li button{padding:6px 12px;font-size:12.5px}
+.art img{width:100%;max-height:320px;object-fit:cover;border-radius:12px;margin:14px 0}
+.art p{margin:0 0 14px;white-space:pre-wrap}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--nav);color:#fff;padding:12px 18px;border-radius:12px;z-index:90;font-size:14px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap nav">
+  <div class="logo"><svg width="38" height="44" viewBox="0 0 38 44" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"><path d="M19 3 4 9v13c0 10 6 17 15 20 9-3 15-10 15-20V9z"/><rect x="12.5" y="19" width="13" height="10" rx="2"/><path d="M15.5 19v-3.5a3.5 3.5 0 0 1 7 0V19"/></svg><div>PREDIAL<small>SECURITY</small></div></div>
+  <nav class="links"><a href="#">Início</a><a href="#">Soluções</a><a href="#">A empresa</a><a class="on" href="#">Notícias</a></nav>
+  <button class="btn" id="b-cli">Entrar / cadastrar</button>
+  <button class="btn or" id="b-func">Área do funcionário &nbsp;→</button>
+</div></header>
+<section class="hero"><div class="wrap">
+  <div class="ov">INFORMAÇÃO · SEGURANÇA · TECNOLOGIA</div>
+  <h1>Predial Notícias</h1>
+  <p>Conteúdo e orientações sobre segurança eletrônica, controle de acesso e tecnologia para empresas e condomínios.</p>
+  <div class="dt" id="today"></div>
+</div></section>
+<div class="bar"><div class="wrap">
+  <div class="pills" id="pills"></div>
+  <input class="search" id="q" type="text" placeholder="⌕  Buscar notícias" aria-label="Buscar notícias">
+</div></div>
+<div class="strip">Conteúdo informativo sobre segurança eletrônica, tecnologia e controle de acesso.</div>
+<div id="st"></div>
+<main class="wrap">
+  <section id="mainc"><div class="empty">Carregando notícias…</div></section>
+  <aside>
+    <div class="card"><h4>Mais lidas</h4><div id="pop"></div></div>
+    <div class="card"><h4>Sobre este espaço</h4><p>Artigos e orientações gerais sobre segurança eletrônica. Cada projeto deve ser avaliado de acordo com as características do local. <a href="#">Conheça a empresa</a>.</p></div>
+  </aside>
+</main>
+<div id="layer"></div>
+<script>
+const $=s=>document.querySelector(s);
+const CATS=["Segurança","Tecnologia","Condomínios"],KINDS=["Guia informativo","Conteúdo informativo","Orientação técnica"];
+let posts=[],db=null,assets=null,isAdmin=false,isOwner=false,unlocked=false,tries=0,lockUntil=0,cat="Todas",q="",loaded=false;
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=d=>new Date(d+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"long",year:"numeric"});
+const todayISO=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+$("#today").textContent=fmt(todayISO());
+const status=t=>{$("#st").textContent=t||""};
+const toast=t=>{const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),3200)};
+const byId=id=>posts.find(p=>p.id===id);
+const img=p=>p.imageId?"/_blob/"+encodeURIComponent(p.imageId):"";
+
+function cover(p){
+  const ot=p.overlay?`<div class="ot">${esc(p.overlay)}</div>`:"";
+  return `<div class="cover${p.imageId?" ph":""}">${p.imageId?`<img src="${img(p)}" alt="">`:""}${ot}</div>`;
+}
+function render(){
+  $("#pills").innerHTML=["Todas",...CATS].map(c=>`<button class="pill${c===cat?" on":""}" data-c="${c}">${c}</button>`).join("");
+  const term=q.trim().toLowerCase();
+  const list=posts.filter(p=>(cat==="Todas"||p.category===cat)&&(!term||[p.title,p.summary,p.body,p.category].join(" ").toLowerCase().includes(term)))
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.createdAt||"").localeCompare(a.createdAt||""));
+  if(!list.length){$("#mainc").innerHTML=`<div class="card empty">${loaded?"Nenhuma notícia publicada ainda.":"Carregando notícias…"}</div>`}
+  else{
+    const f=list.find(p=>p.featured)||list[0],rest=list.filter(p=>p!==f);
+    $("#mainc").innerHTML=`<h2 class="sec">Destaque</h2>
+    <article class="card feat" data-id="${f.id}">${cover(f)}<div class="fb"><div class="tag">${esc(f.kind==="Guia informativo"?"Guia":f.kind)} · ${esc(f.category)}</div><h3>${esc(f.title)}</h3><p>${esc(f.summary)}</p><div class="meta">${esc(f.kind)} · ${f.readMin||1} min de leitura · ${f.date?fmt(f.date):""}</div></div></article>
+    ${rest.length?`<h2 class="sec">Últimas notícias e guias</h2><div class="grid">${rest.map(p=>`<article class="card n" data-id="${p.id}">${p.imageId?`<img src="${img(p)}" alt="">`:""}<div class="tag">${esc(p.category)}</div><h3>${esc(p.title)}</h3><p>${esc(p.summary)}</p><div class="meta">${esc(p.kind)} · ${p.readMin||1} min de leitura · ${p.date?fmt(p.date):""}</div></article>`).join("")}</div>`:""}`;
+  }
+  const sorted=[...posts].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const pop=[...sorted.filter(p=>p.popular),...sorted.filter(p=>!p.popular)].slice(0,3);
+  $("#pop").innerHTML=pop.map((p,i)=>`<div class="pop" data-id="${p.id}"><b>0${i+1}</b><span>${esc(p.title)}</span></div>`).join("")||`<div class="meta">Sem notícias ainda.</div>`;
+}
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-c]");if(c){cat=c.dataset.c;render();return}
+  const a=e.target.closest("[data-id]");if(a&&!e.target.closest("#layer")){openArticle(a.dataset.id)}
+});
+$("#q").addEventListener("input",e=>{q=e.target.value;render()});
+$("#b-cli").onclick=()=>toast("A área de clientes fica no site principal da Predial Security.");
+
+function modal(html,wide){
+  $("#layer").innerHTML=`<div class="ov-bg" id="ovb"><div class="modal${wide?" w":""}" role="dialog" aria-modal="true"><button class="x" id="xx" aria-label="Fechar">×</button>${html}</div></div>`;
+  $("#xx").onclick=close;$("#ovb").addEventListener("mousedown",e=>{if(e.target.id==="ovb")close()});
+}
+function close(){$("#layer").innerHTML=""}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+
+function openArticle(id){
+  const p=byId(id);if(!p)return;
+  modal(`<div class="art"><div class="tag">${esc(p.category)} · ${esc(p.kind)}</div><h3 style="font-size:28px;margin:10px 40px 4px 0">${esc(p.title)}</h3><div class="meta">${p.date?fmt(p.date):""} · ${p.readMin||1} min de leitura</div>${p.imageId?`<img src="${img(p)}" alt="">`:""}<p style="font-weight:700;margin-top:14px">${esc(p.summary)}</p>${(p.body||"").split(/\n{2,}/).map(t=>`<p>${esc(t)}</p>`).join("")}${unlocked?`<button class="sec2" id="ed">Editar esta notícia</button>`:""}</div>`,true);
+  if(unlocked)$("#ed").onclick=()=>panel(id);
+}
+$("#b-func").onclick=()=>unlocked?panel():gate();
+const enc=new TextEncoder(),hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+async function hashPw(pw,salt){const k=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveBits"]);return hex(await crypto.subtle.deriveBits({name:"PBKDF2",salt:enc.encode(salt),iterations:150000,hash:"SHA-256"},k,256))}
+const serr=t=>{const e=$("#err");if(e)e.textContent=t};
+async function gate(){
+  if(!isAdmin||!db){modal(`<h3>Login de funcionário</h3><p class="meta" style="margin:0 40px 0 0">Área restrita à equipe autorizada.</p><div class="note">Sua conta não tem permissão de publicação. Peça ao administrador para convidar você como editor deste painel e depois entre com a senha.</div><button class="prim" style="width:100%" id="ok">Entendi</button>`);$("#ok").onclick=close;return}
+  let cfg=null;try{const s=await db.doc("config/access").get();cfg=s.exists?s.data():null}catch(e){}
+  if(!cfg){
+    if(isOwner)return setPass(true);
+    modal(`<h3>Login de funcionário</h3><div class="note">O administrador ainda não definiu a senha do painel.</div><button class="prim" style="width:100%" id="ok">Entendi</button>`);$("#ok").onclick=close;return}
+  modal(`<h3>Login de funcionário</h3><p class="meta" style="margin:0 40px 0 0">Digite a senha autorizada para abrir a área de publicação.</p><label>Senha</label><input type="password" id="pw" autocomplete="current-password"><div id="err" class="meta" style="color:var(--err);margin-top:10px;font-weight:700"></div><button class="prim" style="width:100%;margin-top:14px" id="go">Entrar na área de publicação</button><div class="note">A senha é conferida por um código protegido e nunca fica salva em texto.</div>`);
+  const go=async()=>{
+    if(Date.now()<lockUntil)return serr("Muitas tentativas. Aguarde 30 segundos.");
+    try{if(await hashPw($("#pw").value,cfg.salt)===cfg.hash){unlocked=true;tries=0;panel()}else{if(++tries>=5){lockUntil=Date.now()+30000;tries=0}serr("Senha incorreta.")}}catch(e){serr("Este navegador não consegue verificar a senha.")}
+  };
+  $("#go").onclick=go;$("#pw").onkeydown=e=>{if(e.key==="Enter")go()};$("#pw").focus();
+}
+function setPass(first){
+  modal(`<h3>${first?"Definir senha do painel":"Alterar senha do painel"}</h3><p class="meta" style="margin:0 40px 0 0">Somente o administrador define a senha. Ela é guardada como código protegido, nunca em texto.</p><label>Nova senha (mínimo 8 caracteres)</label><input type="password" id="p1" autocomplete="new-password"><label>Repita a senha</label><input type="password" id="p2" autocomplete="new-password"><div id="err" class="meta" style="color:var(--err);margin-top:10px;font-weight:700"></div><button class="prim" style="margin-top:16px" id="sp">Salvar senha</button>`);
+  $("#sp").onclick=async()=>{
+    const a=$("#p1").value;if(a.length<8)return serr("Use pelo menos 8 caracteres.");if(a!==$("#p2").value)return serr("As senhas não são iguais.");
+    try{const salt=hex(crypto.getRandomValues(new Uint8Array(16)));await db.doc("config/access").set({salt,hash:await hashPw(a,salt),updatedAt:new Date().toISOString()});unlocked=true;toast("Senha salva.");panel()}catch(e){serr("Não foi possível salvar: "+(e.message||e.code||e))}
+  };
+}
+
+async function shrink(file,max=1600){
+  const b=await createImageBitmap(file),k=Math.min(1,max/Math.max(b.width,b.height)),c=document.createElement("canvas");
+  c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);c.getContext("2d").drawImage(b,0,0,c.width,c.height);
+  return new Promise(r=>c.toBlob(r,"image/jpeg",.85));
+}
+function panel(editId){
+  if(!unlocked)return gate();
+  const p=editId?byId(editId):null,v=p||{category:CATS[0],kind:KINDS[0],date:todayISO()};
+  let imageId=v.imageId||"",removed=false,file=null,delArm=null;
+  modal(`<h3>Painel de publicação</h3><p class="meta" style="margin:0 40px 0 0">${p?"Editando notícia":"Nova notícia"} · salvo no banco de dados e visível para todos.</p>
+  <label>Título</label><input type="text" id="f-t" value="${esc(v.title||"")}" maxlength="140">
+  <div class="row"><div><label>Categoria</label><select id="f-c">${CATS.map(c=>`<option${c===v.category?" selected":""}>${c}</option>`).join("")}</select></div>
+  <div><label>Tipo</label><select id="f-k">${KINDS.map(c=>`<option${c===v.kind?" selected":""}>${c}</option>`).join("")}</select></div></div>
+  <label>Resumo (aparece no card)</label><textarea id="f-s" maxlength="300">${esc(v.summary||"")}</textarea>
+  <label>Texto completo</label><textarea id="f-b" style="min-height:160px">${esc(v.body||"")}</textarea>
+  <div class="row"><div><label>Data de publicação</label><input type="date" id="f-d" value="${esc(v.date||"")}"></div>
+  <div><label>Frase sobre a imagem (opcional)</label><input type="text" id="f-o" value="${esc(v.overlay||"")}" maxlength="80"></div></div>
+  <label>Foto de capa</label><input type="file" id="f-f" accept="image/*"><img class="prev" id="pv" alt="" ${imageId?`src="${img(v)}"`:"hidden"}><button class="sec2" id="rm" style="margin-top:8px" ${imageId?"":"hidden"}>Remover foto</button>
+  <div><label class="chk" style="display:inline-flex"><input type="checkbox" id="f-ft"${v.featured?" checked":""}>Destaque principal</label><label class="chk" style="display:inline-flex"><input type="checkbox" id="f-p"${v.popular?" checked":""}>Mostrar em “Mais lidas”</label></div>
+  <div id="err" class="meta" style="color:var(--err);margin-top:10px"></div>
+  <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="prim" id="sv">${p?"Salvar alterações":"Publicar notícia"}</button>${p?`<button class="sec2" id="dl">Excluir</button>`:""}<button class="sec2" id="cn">Cancelar</button></div>
+  <h4 class="hd" style="margin:26px 0 4px">Notícias publicadas (${posts.length})</h4>${posts.map(x=>`<div class="li"><span>${esc(x.title)}</span><button class="sec2" data-ed="${x.id}">Editar</button></div>`).join("")}<button class="sec2" id="lo" style="margin-top:18px">Sair</button>`,true);
+  $("#cn").onclick=close;
+  $("#lo").onclick=logout;
+  document.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>panel(b.dataset.ed));
+  $("#f-f").onchange=e=>{file=e.target.files[0]||null;removed=false;if(file){$("#pv").src=URL.createObjectURL(file);$("#pv").hidden=false;$("#rm").hidden=false}};
+  $("#rm").onclick=()=>{removed=true;file=null;imageId="";$("#pv").hidden=true;$("#rm").hidden=true;$("#f-f").value=""};
+  if(p)$("#dl").onclick=async()=>{
+    if(!delArm){delArm=1;$("#dl").textContent="Confirmar exclusão";return}
+    try{await db.doc("news/"+p.id).delete();toast("Notícia excluída.");close()}catch(e){$("#err").textContent="Não foi possível excluir: "+(e.message||e.code)}
+  };
+  $("#sv").onclick=async()=>{
+    if(!unlocked)return;
+    const t=$("#f-t").value.trim(),s=$("#f-s").value.trim(),b=$("#f-b").value.trim(),d=$("#f-d").value||todayISO();
+    if(!t||!s){$("#err").textContent="Informe ao menos o título e o resumo.";return}
+    $("#sv").disabled=true;$("#sv").textContent="Salvando…";$("#err").textContent="";
+    try{
+      if(file&&assets){const r=await assets.upload(await shrink(file));imageId=r.id}
+      const words=(b+" "+s).split(/\s+/).filter(Boolean).length,now=new Date().toISOString();
+      const data={title:t,category:$("#f-c").value,kind:$("#f-k").value,summary:s,body:b,date:d,overlay:$("#f-o").value.trim(),imageId,featured:$("#f-ft").checked,popular:$("#f-p").checked,readMin:Math.max(1,Math.round(words/180)),createdAt:v.createdAt||now,updatedAt:now};
+      let ref;
+      if(p){ref=db.doc("news/"+p.id);await ref.set(data)}else{ref=await db.collection("news").add(data)}
+      if(data.featured)for(const o of posts)if(o.featured&&o.id!==ref.id)await db.doc("news/"+o.id).update({featured:false});
+      toast(p?"Alterações salvas.":"Notícia publicada!");close();
+    }catch(e){$("#err").textContent="Erro ao salvar: "+(e.message||e.code||e);$("#sv").disabled=false;$("#sv").textContent="Tentar de novo"}
+  };
+}
+
+(async()=>{
+  render();
+  if(!window.claude||!claude.use){status("Banco de dados indisponível fora do Claude.");return}
+  try{const u=await claude.use("user");isAdmin=u?!!(await u.canEdit()):false;isOwner=u?!!(await u.isOwner()):false}catch(e){}
+  assets=await claude.use("assets").catch(()=>null);
+  db=await claude.use("db").catch(()=>null);
+  if(!db){loaded=true;render();status("Não foi possível conectar ao banco de dados. Entre na sua conta para ver as notícias.");return}
+  const tm=setTimeout(()=>status("Não foi possível carregar as notícias publicadas: sem resposta do banco de dados."),10000);
+  db.collection("news").onSnapshot(s=>{clearTimeout(tm);status("");posts=s.docs.map(d=>({id:d.id,...d.data()}));loaded=true;render()},
+    e=>{clearTimeout(tm);loaded=true;render();status("Não foi possível carregar as notícias publicadas: "+(e.message||e.code))});
+})();
+</script>
+</body>
+</html>
