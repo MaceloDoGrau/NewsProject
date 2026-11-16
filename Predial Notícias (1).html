@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="api-base-url" content="">
 <title>Predial Notícias</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
@@ -126,16 +127,47 @@ textarea{min-height:90px;resize:vertical}
 <div id="layer"></div>
 <script>
 const $=s=>document.querySelector(s);
-const CATS=["Segurança","Tecnologia","Condomínios"],KINDS=["Guia informativo","Conteúdo informativo","Orientação técnica"];
-let posts=[],db=null,assets=null,isAdmin=false,isOwner=false,unlocked=false,tries=0,lockUntil=0,cat="Todas",q="",loaded=false;
+const apiMeta=$('meta[name="api-base-url"]');
+const API_BASE_URL=(window.PREDIAL_API_BASE_URL||(apiMeta&&apiMeta.content)||"").replace(/\/+$/,"");
+const KINDS=["Guia informativo","Conteúdo informativo","Orientação técnica"];
+let posts=[],adminPosts=[],CATS=[],sessionRole="",unlocked=false,cat="Todas",q="",loaded=false;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=d=>new Date(d+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"long",year:"numeric"});
 const todayISO=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 $("#today").textContent=fmt(todayISO());
 const status=t=>{$("#st").textContent=t||""};
 const toast=t=>{const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),3200)};
-const byId=id=>posts.find(p=>p.id===id);
-const img=p=>p.imageId?"/_blob/"+encodeURIComponent(p.imageId):"";
+const byId=id=>adminPosts.find(p=>p.id===id)||posts.find(p=>p.id===id);
+const img=p=>p.imageId?API_BASE_URL+"/_blob/"+encodeURIComponent(p.imageId):"";
+
+async function api(path,options={}){
+  let response;
+  try{response=await fetch(API_BASE_URL+path,{credentials:"include",...options})}
+  catch(e){throw new Error("Não foi possível conectar à API. Verifique o endereço e a rede.")}
+  if(!response.ok){
+    let message=`A API respondeu com erro ${response.status}.`;
+    if(response.status===401)message="Sessão expirada ou acesso não autorizado.";
+    try{const body=await response.json();if(body.message)message=body.message}catch(e){}
+    throw new Error(message);
+  }
+  if(response.status===204)return null;
+  return response.json();
+}
+async function writeApi(path,method,data){
+  const csrf=await api("/api/auth/csrf");
+  if(!csrf.token)throw new Error("A API não retornou o token de segurança.");
+  const headers={"X-XSRF-TOKEN":csrf.token};
+  let body;
+  if(data instanceof FormData)body=data;
+  else if(data!==undefined){headers["Content-Type"]="application/json";body=JSON.stringify(data)}
+  return api(path,{method,headers,body});
+}
+async function refreshNews(){
+  posts=await api("/api/news");
+  if(unlocked)adminPosts=await api("/api/admin/news");
+  loaded=true;
+  render();
+}
 
 function cover(p){
   const ot=p.overlay?`<div class="ot">${esc(p.overlay)}</div>`:"";
@@ -177,39 +209,35 @@ function openArticle(id){
   if(unlocked)$("#ed").onclick=()=>panel(id);
 }
 $("#b-func").onclick=()=>unlocked?panel():gate();
-const enc=new TextEncoder(),hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
-async function hashPw(pw,salt){const k=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveBits"]);return hex(await crypto.subtle.deriveBits({name:"PBKDF2",salt:enc.encode(salt),iterations:150000,hash:"SHA-256"},k,256))}
 const serr=t=>{const e=$("#err");if(e)e.textContent=t};
 async function gate(){
-  if(!isAdmin||!db){modal(`<h3>Login de funcionário</h3><p class="meta" style="margin:0 40px 0 0">Área restrita à equipe autorizada.</p><div class="note">Sua conta não tem permissão de publicação. Peça ao administrador para convidar você como editor deste painel e depois entre com a senha.</div><button class="prim" style="width:100%" id="ok">Entendi</button>`);$("#ok").onclick=close;return}
-  let cfg=null;try{const s=await db.doc("config/access").get();cfg=s.exists?s.data():null}catch(e){}
-  if(!cfg){
-    if(isOwner)return setPass(true);
-    modal(`<h3>Login de funcionário</h3><div class="note">O administrador ainda não definiu a senha do painel.</div><button class="prim" style="width:100%" id="ok">Entendi</button>`);$("#ok").onclick=close;return}
-  modal(`<h3>Login de funcionário</h3><p class="meta" style="margin:0 40px 0 0">Digite a senha autorizada para abrir a área de publicação.</p><label>Senha</label><input type="password" id="pw" autocomplete="current-password"><div id="err" class="meta" style="color:var(--err);margin-top:10px;font-weight:700"></div><button class="prim" style="width:100%;margin-top:14px" id="go">Entrar na área de publicação</button><div class="note">A senha é conferida por um código protegido e nunca fica salva em texto.</div>`);
-  const go=async()=>{
-    if(Date.now()<lockUntil)return serr("Muitas tentativas. Aguarde 30 segundos.");
-    try{if(await hashPw($("#pw").value,cfg.salt)===cfg.hash){unlocked=true;tries=0;panel()}else{if(++tries>=5){lockUntil=Date.now()+30000;tries=0}serr("Senha incorreta.")}}catch(e){serr("Este navegador não consegue verificar a senha.")}
+  modal(`<h3>Login de funcionário</h3><p class="meta" style="margin:0 40px 0 0">Entre com a conta administrativa cadastrada no servidor.</p><form id="login"><label for="username">Usuário</label><input type="text" id="username" autocomplete="username" required><label for="password">Senha</label><input type="password" id="password" autocomplete="current-password" required><div id="err" class="meta" style="color:var(--err);margin-top:10px;font-weight:700"></div><button class="prim" style="width:100%;margin-top:14px" id="go">Entrar na área de publicação</button></form><div class="note">A autenticação e a permissão de publicação são verificadas pelo servidor.</div>`);
+  $("#login").onsubmit=async e=>{
+    e.preventDefault();
+    const button=$("#go");button.disabled=true;button.textContent="Entrando…";serr("");
+    try{
+      const csrf=await api("/api/auth/csrf");
+      const response=await fetch(API_BASE_URL+"/api/auth/login",{method:"POST",credentials:"include",headers:{"Content-Type":"application/x-www-form-urlencoded","X-XSRF-TOKEN":csrf.token},body:new URLSearchParams({username:$("#username").value,password:$("#password").value})});
+      if(!response.ok)throw new Error(response.status===401?"Usuário ou senha inválidos.":`Falha no login (${response.status}).`);
+      const user=await api("/api/auth/me");
+      if(!user.authenticated||!["ADMIN","EDITOR"].includes(user.role))throw new Error("Esta conta não tem permissão para publicar.");
+      sessionRole=user.role;unlocked=true;
+      adminPosts=await api("/api/admin/news");
+      panel();toast("Login realizado.");
+    }catch(error){serr(error.message);button.disabled=false;button.textContent="Tentar novamente"}
   };
-  $("#go").onclick=go;$("#pw").onkeydown=e=>{if(e.key==="Enter")go()};$("#pw").focus();
-}
-function setPass(first){
-  modal(`<h3>${first?"Definir senha do painel":"Alterar senha do painel"}</h3><p class="meta" style="margin:0 40px 0 0">Somente o administrador define a senha. Ela é guardada como código protegido, nunca em texto.</p><label>Nova senha (mínimo 8 caracteres)</label><input type="password" id="p1" autocomplete="new-password"><label>Repita a senha</label><input type="password" id="p2" autocomplete="new-password"><div id="err" class="meta" style="color:var(--err);margin-top:10px;font-weight:700"></div><button class="prim" style="margin-top:16px" id="sp">Salvar senha</button>`);
-  $("#sp").onclick=async()=>{
-    const a=$("#p1").value;if(a.length<8)return serr("Use pelo menos 8 caracteres.");if(a!==$("#p2").value)return serr("As senhas não são iguais.");
-    try{const salt=hex(crypto.getRandomValues(new Uint8Array(16)));await db.doc("config/access").set({salt,hash:await hashPw(a,salt),updatedAt:new Date().toISOString()});unlocked=true;toast("Senha salva.");panel()}catch(e){serr("Não foi possível salvar: "+(e.message||e.code||e))}
-  };
+  $("#username").focus();
 }
 
 async function shrink(file,max=1600){
   const b=await createImageBitmap(file),k=Math.min(1,max/Math.max(b.width,b.height)),c=document.createElement("canvas");
   c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);c.getContext("2d").drawImage(b,0,0,c.width,c.height);
-  return new Promise(r=>c.toBlob(r,"image/jpeg",.85));
+  return new Promise((resolve,reject)=>c.toBlob(blob=>blob?resolve(blob):reject(new Error("Não foi possível processar a foto.")),"image/jpeg",.85));
 }
 function panel(editId){
   if(!unlocked)return gate();
   const p=editId?byId(editId):null,v=p||{category:CATS[0],kind:KINDS[0],date:todayISO()};
-  let imageId=v.imageId||"",removed=false,file=null,delArm=null;
+  let imageId=v.imageId||"",file=null,delArm=false;
   modal(`<h3>Painel de publicação</h3><p class="meta" style="margin:0 40px 0 0">${p?"Editando notícia":"Nova notícia"} · salvo no banco de dados e visível para todos.</p>
   <label>Título</label><input type="text" id="f-t" value="${esc(v.title||"")}" maxlength="140">
   <div class="row"><div><label>Categoria</label><select id="f-c">${CATS.map(c=>`<option${c===v.category?" selected":""}>${c}</option>`).join("")}</select></div>
@@ -221,16 +249,17 @@ function panel(editId){
   <label>Foto de capa</label><input type="file" id="f-f" accept="image/*"><img class="prev" id="pv" alt="" ${imageId?`src="${img(v)}"`:"hidden"}><button class="sec2" id="rm" style="margin-top:8px" ${imageId?"":"hidden"}>Remover foto</button>
   <div><label class="chk" style="display:inline-flex"><input type="checkbox" id="f-ft"${v.featured?" checked":""}>Destaque principal</label><label class="chk" style="display:inline-flex"><input type="checkbox" id="f-p"${v.popular?" checked":""}>Mostrar em “Mais lidas”</label></div>
   <div id="err" class="meta" style="color:var(--err);margin-top:10px"></div>
-  <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="prim" id="sv">${p?"Salvar alterações":"Publicar notícia"}</button>${p?`<button class="sec2" id="dl">Excluir</button>`:""}<button class="sec2" id="cn">Cancelar</button></div>
-  <h4 class="hd" style="margin:26px 0 4px">Notícias publicadas (${posts.length})</h4>${posts.map(x=>`<div class="li"><span>${esc(x.title)}</span><button class="sec2" data-ed="${x.id}">Editar</button></div>`).join("")}<button class="sec2" id="lo" style="margin-top:18px">Sair</button>`,true);
+  <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="prim" id="sv">${p?"Salvar alterações":"Publicar notícia"}</button>${p&&sessionRole==="ADMIN"?`<button class="sec2" id="dl">Excluir</button>`:""}<button class="sec2" id="cn">Cancelar</button></div>
+  <h4 class="hd" style="margin:26px 0 4px">Notícias cadastradas (${adminPosts.length})</h4>${adminPosts.map(x=>`<div class="li"><span>${esc(x.title)}</span><button class="sec2" data-ed="${x.id}">Editar</button></div>`).join("")}<button class="sec2" id="lo" style="margin-top:18px">Sair</button>`,true);
   $("#cn").onclick=close;
   $("#lo").onclick=logout;
   document.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>panel(b.dataset.ed));
-  $("#f-f").onchange=e=>{file=e.target.files[0]||null;removed=false;if(file){$("#pv").src=URL.createObjectURL(file);$("#pv").hidden=false;$("#rm").hidden=false}};
-  $("#rm").onclick=()=>{removed=true;file=null;imageId="";$("#pv").hidden=true;$("#rm").hidden=true;$("#f-f").value=""};
-  if(p)$("#dl").onclick=async()=>{
-    if(!delArm){delArm=1;$("#dl").textContent="Confirmar exclusão";return}
-    try{await db.doc("news/"+p.id).delete();toast("Notícia excluída.");close()}catch(e){$("#err").textContent="Não foi possível excluir: "+(e.message||e.code)}
+  $("#f-f").onchange=e=>{file=e.target.files[0]||null;if(file){$("#pv").src=URL.createObjectURL(file);$("#pv").hidden=false;$("#rm").hidden=false}};
+  $("#rm").onclick=()=>{file=null;imageId="";$("#pv").hidden=true;$("#rm").hidden=true;$("#f-f").value=""};
+  if(p&&sessionRole==="ADMIN")$("#dl").onclick=async()=>{
+    if(!delArm){delArm=true;$("#dl").textContent="Confirmar exclusão";return}
+    try{await writeApi("/api/admin/news/"+encodeURIComponent(p.id),"DELETE");await refreshNews();toast("Notícia excluída.");close()}
+    catch(e){$("#err").textContent="Não foi possível excluir: "+e.message}
   };
   $("#sv").onclick=async()=>{
     if(!unlocked)return;
@@ -238,27 +267,33 @@ function panel(editId){
     if(!t||!s){$("#err").textContent="Informe ao menos o título e o resumo.";return}
     $("#sv").disabled=true;$("#sv").textContent="Salvando…";$("#err").textContent="";
     try{
-      if(file&&assets){const r=await assets.upload(await shrink(file));imageId=r.id}
-      const words=(b+" "+s).split(/\s+/).filter(Boolean).length,now=new Date().toISOString();
-      const data={title:t,category:$("#f-c").value,kind:$("#f-k").value,summary:s,body:b,date:d,overlay:$("#f-o").value.trim(),imageId,featured:$("#f-ft").checked,popular:$("#f-p").checked,readMin:Math.max(1,Math.round(words/180)),createdAt:v.createdAt||now,updatedAt:now};
-      let ref;
-      if(p){ref=db.doc("news/"+p.id);await ref.set(data)}else{ref=await db.collection("news").add(data)}
-      if(data.featured)for(const o of posts)if(o.featured&&o.id!==ref.id)await db.doc("news/"+o.id).update({featured:false});
+      if(file){const form=new FormData();form.append("file",await shrink(file),"capa.jpg");const uploaded=await writeApi("/api/admin/assets","POST",form);imageId=uploaded.id}
+      const data={title:t,category:$("#f-c").value,kind:$("#f-k").value,summary:s,body:b,date:d,overlay:$("#f-o").value.trim(),imageId,featured:$("#f-ft").checked,popular:$("#f-p").checked};
+      if(p)await writeApi("/api/admin/news/"+encodeURIComponent(p.id),"PUT",data);
+      else await writeApi("/api/admin/news","POST",data);
+      await refreshNews();
       toast(p?"Alterações salvas.":"Notícia publicada!");close();
-    }catch(e){$("#err").textContent="Erro ao salvar: "+(e.message||e.code||e);$("#sv").disabled=false;$("#sv").textContent="Tentar de novo"}
+    }catch(e){$("#err").textContent="Erro ao salvar: "+e.message;$("#sv").disabled=false;$("#sv").textContent="Tentar de novo"}
   };
+}
+
+async function logout(){
+  try{await writeApi("/api/auth/logout","POST");unlocked=false;sessionRole="";adminPosts=[];close();toast("Sessão encerrada.");render()}
+  catch(e){status("Não foi possível encerrar a sessão: "+e.message)}
 }
 
 (async()=>{
   render();
-  if(!window.claude||!claude.use){status("Banco de dados indisponível fora do Claude.");return}
-  try{const u=await claude.use("user");isAdmin=u?!!(await u.canEdit()):false;isOwner=u?!!(await u.isOwner()):false}catch(e){}
-  assets=await claude.use("assets").catch(()=>null);
-  db=await claude.use("db").catch(()=>null);
-  if(!db){loaded=true;render();status("Não foi possível conectar ao banco de dados. Entre na sua conta para ver as notícias.");return}
-  const tm=setTimeout(()=>status("Não foi possível carregar as notícias publicadas: sem resposta do banco de dados."),10000);
-  db.collection("news").onSnapshot(s=>{clearTimeout(tm);status("");posts=s.docs.map(d=>({id:d.id,...d.data()}));loaded=true;render()},
-    e=>{clearTimeout(tm);loaded=true;render();status("Não foi possível carregar as notícias publicadas: "+(e.message||e.code))});
+  try{
+    const [categories,news]=await Promise.all([api("/api/categories"),api("/api/news")]);
+    CATS=categories.map(item=>item.name);posts=news;loaded=true;render();status("");
+  }catch(e){loaded=true;render();status("Não foi possível carregar as notícias: "+e.message);return}
+  try{
+    const user=await api("/api/auth/me");
+    if(user.authenticated&&["ADMIN","EDITOR"].includes(user.role)){
+      sessionRole=user.role;unlocked=true;adminPosts=await api("/api/admin/news");render();
+    }
+  }catch(e){unlocked=false;sessionRole="";status("Não foi possível verificar a sessão: "+e.message)}
 })();
 </script>
 </body>

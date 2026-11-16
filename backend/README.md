@@ -1,51 +1,55 @@
-# Predial Notícias API
+# Predial Notícias
 
-Backend REST separado do HTML existente. A aplicação usa Java 21, Spring Boot e PostgreSQL; o frontend não é alterado por este projeto.
+Aplicação de notícias com frontend HTML conectado à API REST Spring Boot e persistência PostgreSQL. O banco remoto é hospedado no Neon; as migrações Flyway criam as tabelas e as categorias iniciais.
 
 ## Requisitos
 
 - Java 21
 - Maven 3.9+
-- PostgreSQL
+- Node.js e Neon CLI apenas para configurar o projeto Neon
 
-## Configuração e execução
+## Neon e execução local
 
-Configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` no ambiente. Por padrão, `DB_URL` aponta para `jdbc:postgresql://localhost:5432/predial_news`. As migrações Flyway criam o esquema e as categorias já usadas pela página.
+O projeto está vinculado ao Neon por `.neon` e `neon.ts`. Para obter ou atualizar as variáveis locais, execute `neon env pull` na raiz do repositório. O arquivo raiz `.env.local` é ignorado pelo Git; não publique nem compartilhe seus valores.
 
-Para criar o primeiro administrador, configure também `BOOTSTRAP_ADMIN_USERNAME`, `BOOTSTRAP_ADMIN_EMAIL` e `BOOTSTRAP_ADMIN_PASSWORD` antes da primeira execução. A senha precisa ter ao menos 12 caracteres e é armazenada com BCrypt. O bootstrap não é uma rota pública; após a criação, remova essas variáveis. Inicializações posteriores com a mesma identidade não alteram a senha existente.
+O backend lê `DATABASE_URL` desse arquivo, converte a URL do Neon para JDBC e extrai as credenciais sem mantê-las na URL JDBC. Variáveis de ambiente `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` explícitas têm precedência, permitindo usar outro PostgreSQL local.
 
-Em desenvolvimento local, mantenha `SESSION_COOKIE_SECURE=false`; em HTTPS, defina `SESSION_COOKIE_SECURE=true`.
-
-No PowerShell:
+Na raiz do repositório, inicie o backend:
 
 ```powershell
-$env:DB_URL = "jdbc:postgresql://localhost:5432/predial_news"
-$env:DB_USERNAME = "predial_news"
-$env:DB_PASSWORD = "<senha do banco>"
-$env:BOOTSTRAP_ADMIN_USERNAME = "<usuario administrador>"
-$env:BOOTSTRAP_ADMIN_EMAIL = "<email administrador>"
-$env:BOOTSTRAP_ADMIN_PASSWORD = "<senha de pelo menos 12 caracteres>"
-mvn spring-boot:run
+mvn -f backend\pom.xml spring-boot:run
 ```
 
-Para executar os testes: `mvn test`.
+O servidor inicia em `http://localhost:8080`. Verifique a conexão com o Neon em `/api/health`; a resposta deve ser `{"status":"up"}`.
 
-## API alinhada à página
+Para criar o primeiro administrador, configure `BOOTSTRAP_ADMIN_USERNAME`, `BOOTSTRAP_ADMIN_EMAIL` e `BOOTSTRAP_ADMIN_PASSWORD` no ambiente antes da primeira execução. A senha precisa ter ao menos 12 caracteres e é armazenada com BCrypt. Após a criação, remova essas variáveis. A criação inicial é feita pelo backend, não pelo formulário público.
 
-A página HTML continua usando o runtime Claude. Estes contratos reproduzem os campos e as operações que o script já monta, para a ligação futura sem mudar o layout.
+## Frontend e API
 
-- `GET /api/news` e `GET /api/news/{id}`: notícias publicadas. O `id` é texto. Cada item traz `title`, `category`, `kind`, `summary`, `body`, `date` (`aaaa-mm-dd`), `overlay`, `imageId`, `featured`, `popular`, `readMin`, `createdAt` e `updatedAt`.
-- `GET /api/categories`: categorias já usadas pelos filtros da página (`Segurança`, `Tecnologia`, `Condomínios`).
-- `GET /_blob/{id}`: bytes da foto de capa. É o caminho que a função `img()` da página já usa.
-- `GET /api/auth/csrf`: token CSRF antes de operações protegidas.
-- `POST /api/auth/login`: sessão com `username` e `password`.
-- `POST /api/auth/logout`: encerra a sessão; CSRF também é obrigatório.
-- `POST /api/admin/assets`: upload `multipart` no campo `file` (JPEG, PNG, WEBP ou GIF, até 3 MB). A resposta é `{ "id": "..." }`, no mesmo formato de `assets.upload`.
-- `POST /api/admin/news`: cria e já publica. O corpo aceita o objeto da página (`title`, `category`, `kind`, `summary`, `body`, `date`, `overlay`, `imageId`, `featured`, `popular`). `readMin`, `createdAt` e `updatedAt` enviados a mais são ignorados; o servidor recalcula o tempo de leitura e as datas.
-- `PUT /api/admin/news/{id}`: substitui a notícia, como o `set` da página.
-- `PATCH /api/admin/news/{id}`: atualização parcial. `{ "featured": false }` cobre o ajuste das demais notícias quando uma vira destaque. O servidor também zera o destaque anterior ao gravar `featured: true`.
-- `DELETE /api/admin/news/{id}`: exclui a notícia.
+O HTML chama `GET /api/news`, `GET /api/categories` e `GET /api/auth/me`. O login usa sessão do Spring Security; operações de publicação, edição, upload e exclusão passam pela API e enviam token CSRF. `ADMIN` pode excluir; `EDITOR` pode publicar e editar.
 
-Criar, editar, enviar foto e excluir exigem sessão de `ADMIN` ou `EDITOR` e token CSRF. O cookie de sessão é HttpOnly e SameSite=Lax.
+Por padrão, o frontend usa a API na mesma origem. Se hospedado em outro domínio, defina `window.PREDIAL_API_BASE_URL` antes do script ou preencha o `<meta name="api-base-url">` no HTML com a URL base da API. Configure no backend a origem exata do frontend em `CORS_ALLOWED_ORIGINS` (uma ou mais origens separadas por vírgula). Em HTTPS entre domínios diferentes, configure também:
 
-O HTML ainda não chama estes endereços. Enquanto o script depender de `claude.use("db")`, `claude.use("user")` e `claude.use("assets")`, abrir a página continua mostrando o banco do Claude como indisponível.
+```text
+SESSION_COOKIE_SECURE=true
+SESSION_COOKIE_SAME_SITE=none
+```
+
+Sem uma origem permitida, requisições cross-origin são bloqueadas. Não use `*` com credenciais.
+
+Principais rotas:
+
+- `GET /api/news` e `GET /api/news/{id}`: notícias publicadas.
+- `GET /api/categories`: categorias.
+- `GET /_blob/{id}`: imagem armazenada no PostgreSQL.
+- `GET /api/auth/csrf`, `GET /api/auth/me`, `POST /api/auth/login` e `POST /api/auth/logout`: CSRF e sessão.
+- `GET /api/admin/news`, `POST /api/admin/news`, `PUT /api/admin/news/{id}` e `DELETE /api/admin/news/{id}`: operações administrativas.
+- `POST /api/admin/assets`: upload de imagem multipart (JPEG, PNG, WEBP ou GIF; até 3 MB).
+
+## Validação
+
+```powershell
+mvn -f backend\pom.xml verify
+```
+
+Este é um projeto Java/Spring Boot sem etapa de build JavaScript; o `npm run build` genérico não se aplica. O `package.json` da raiz é usado pela configuração da CLI Neon.

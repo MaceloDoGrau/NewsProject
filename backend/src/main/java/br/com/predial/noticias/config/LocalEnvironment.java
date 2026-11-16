@@ -10,7 +10,7 @@ public final class LocalEnvironment {
     private LocalEnvironment() {
     }
 
-    static void load() {
+    public static void load() {
         for (Path candidate : List.of(
                 Path.of(".env.local"),
                 Path.of("backend", ".env.local"),
@@ -48,13 +48,19 @@ public final class LocalEnvironment {
         }
     }
 
-    private static void normalizeDatabaseProperties() {
-        String rawUrl = firstNonBlank(System.getProperty("DB_URL"), System.getenv("DB_URL"));
+    static void normalizeDatabaseProperties() {
+        normalizeDatabaseProperties(
+                configuredValue("DB_URL"),
+                configuredValue("DATABASE_URL"),
+                configuredValue("DB_USERNAME"),
+                configuredValue("DB_PASSWORD"));
+    }
+
+    static void normalizeDatabaseProperties(String dbUrl, String databaseUrl, String username, String password) {
+        String rawUrl = firstNonBlank(dbUrl, databaseUrl);
         if (rawUrl == null) {
             return;
         }
-        String username = firstNonBlank(System.getProperty("DB_USERNAME"), System.getenv("DB_USERNAME"));
-        String password = firstNonBlank(System.getProperty("DB_PASSWORD"), System.getenv("DB_PASSWORD"));
         if (username == null) {
             String extracted = JdbcUrlNormalizer.userInfoUsername(rawUrl);
             if (extracted != null && !extracted.isBlank()) {
@@ -68,6 +74,10 @@ public final class LocalEnvironment {
             }
         }
         System.setProperty("DB_URL", JdbcUrlNormalizer.toJdbcUrl(rawUrl));
+    }
+
+    private static String configuredValue(String name) {
+        return firstNonBlank(System.getProperty(name), System.getenv(name));
     }
 
     private static String firstNonBlank(String first, String second) {
