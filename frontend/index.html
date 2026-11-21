@@ -205,8 +205,8 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
 
 function openArticle(id){
   const p=byId(id);if(!p)return;
-  modal(`<div class="art"><div class="tag">${esc(p.category)} · ${esc(p.kind)}</div><h3 style="font-size:28px;margin:10px 40px 4px 0">${esc(p.title)}</h3><div class="meta">${p.date?fmt(p.date):""} · ${p.readMin||1} min de leitura</div>${p.imageId?`<img src="${img(p)}" alt="">`:""}<p style="font-weight:700;margin-top:14px">${esc(p.summary)}</p>${(p.body||"").split(/\n{2,}/).map(t=>`<p>${esc(t)}</p>`).join("")}${unlocked?`<button class="sec2" id="ed">Editar esta notícia</button>`:""}</div>`,true);
-  if(unlocked)$("#ed").onclick=()=>panel(id);
+  modal(`<div class="art"><div class="tag">${esc(p.category)} · ${esc(p.kind)}</div><h3 style="font-size:28px;margin:10px 40px 4px 0">${esc(p.title)}</h3><div class="meta">${p.date?fmt(p.date):""} · ${p.readMin||1} min de leitura</div>${p.imageId?`<img src="${img(p)}" alt="">`:""}<p style="font-weight:700;margin-top:14px">${esc(p.summary)}</p>${(p.body||"").split(/\n{2,}/).map(t=>`<p>${esc(t)}</p>`).join("")}${sessionRole==="ADMIN"?`<button class="sec2" id="ed">Editar esta notícia</button>`:""}</div>`,true);
+  if(sessionRole==="ADMIN")$("#ed").onclick=()=>panel(id);
 }
 $("#b-func").onclick=()=>unlocked?panel():gate();
 const serr=t=>{const e=$("#err");if(e)e.textContent=t};
@@ -236,6 +236,7 @@ async function shrink(file,max=1600){
 }
 function panel(editId){
   if(!unlocked)return gate();
+  if(editId&&sessionRole!=="ADMIN"){toast("Somente administradores podem editar notícias.");return}
   const p=editId?byId(editId):null,v=p||{category:CATS[0],kind:KINDS[0],date:todayISO()};
   let imageId=v.imageId||"",file=null,delArm=false;
   modal(`<h3>Painel de publicação</h3><p class="meta" style="margin:0 40px 0 0">${p?"Editando notícia":"Nova notícia"} · salvo no banco de dados e visível para todos.</p>
@@ -250,7 +251,7 @@ function panel(editId){
   <div><label class="chk" style="display:inline-flex"><input type="checkbox" id="f-ft"${v.featured?" checked":""}>Destaque principal</label><label class="chk" style="display:inline-flex"><input type="checkbox" id="f-p"${v.popular?" checked":""}>Mostrar em “Mais lidas”</label></div>
   <div id="err" class="meta" style="color:var(--err);margin-top:10px"></div>
   <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="prim" id="sv">${p?"Salvar alterações":"Publicar notícia"}</button>${p&&sessionRole==="ADMIN"?`<button class="sec2" id="dl">Excluir</button>`:""}<button class="sec2" id="cn">Cancelar</button></div>
-  <h4 class="hd" style="margin:26px 0 4px">Notícias cadastradas (${adminPosts.length})</h4>${adminPosts.map(x=>`<div class="li"><span>${esc(x.title)}</span><button class="sec2" data-ed="${x.id}">Editar</button></div>`).join("")}<button class="sec2" id="lo" style="margin-top:18px">Sair</button>`,true);
+  <h4 class="hd" style="margin:26px 0 4px">Notícias cadastradas (${adminPosts.length})</h4>${adminPosts.map(x=>`<div class="li"><span>${esc(x.title)}</span>${sessionRole==="ADMIN"?`<button class="sec2" data-ed="${x.id}">Editar</button>`:""}</div>`).join("")}<button class="sec2" id="lo" style="margin-top:18px">Sair</button>`,true);
   $("#cn").onclick=close;
   $("#lo").onclick=logout;
   document.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>panel(b.dataset.ed));
@@ -263,6 +264,7 @@ function panel(editId){
   };
   $("#sv").onclick=async()=>{
     if(!unlocked)return;
+    if(p&&sessionRole!=="ADMIN"){serr("Somente administradores podem editar notícias.");return}
     const t=$("#f-t").value.trim(),s=$("#f-s").value.trim(),b=$("#f-b").value.trim(),d=$("#f-d").value||todayISO();
     if(!t||!s){$("#err").textContent="Informe ao menos o título e o resumo.";return}
     $("#sv").disabled=true;$("#sv").textContent="Salvando…";$("#err").textContent="";

@@ -18,7 +18,9 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest({PublicNewsController.class, AdminNewsController.class})
@@ -59,6 +61,47 @@ class NewsAuthorizationTest {
     void editorCannotDeleteNews() throws Exception {
         mockMvc.perform(delete("/api/admin/news/1").with(csrf()))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "EDITOR")
+    void editorCannotUpdateNews() throws Exception {
+        mockMvc.perform(put("/api/admin/news/1")
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("""
+                                {"title":"Título","category":"Segurança","kind":"Guia informativo","summary":"Resumo","body":"Texto","date":"2026-11-13","overlay":"","imageId":"","featured":false,"popular":false}
+                                """))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "EDITOR")
+    void editorCannotPatchNews() throws Exception {
+        mockMvc.perform(patch("/api/admin/news/1")
+                        .with(csrf())
+                        .contentType("application/json")
+                .content("{\"featured\":true}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "EDITOR")
+    void editorCannotPublishExistingNews() throws Exception {
+        mockMvc.perform(post("/api/admin/news/1/publish").with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminCanUpdateNews() throws Exception {
+        mockMvc.perform(put("/api/admin/news/1")
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("""
+                                {"title":"Título","category":"Segurança","kind":"Guia informativo","summary":"Resumo","body":"Texto","date":"2026-11-13","overlay":"","imageId":"","featured":false,"popular":false}
+                                """))
+                .andExpect(status().isOk());
     }
 
     @Test

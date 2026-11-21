@@ -43,16 +43,19 @@ public class AdminNewsController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public NewsResponse update(@PathVariable Long id, @Valid @RequestBody NewsRequest request) {
         return newsService.update(id, request);
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public NewsResponse patch(@PathVariable Long id, @RequestBody NewsPatchRequest request) {
         return newsService.patch(id, request);
     }
 
     @PostMapping("/{id}/publish")
+    @PreAuthorize("hasRole('ADMIN')")
     public NewsResponse publish(@PathVariable Long id) {
         return newsService.publish(id);
     }
